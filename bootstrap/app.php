@@ -11,9 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Register global authentication middleware (runs on every request)
+        $middleware->append(\App\Http\Middleware\GlobalAuth::class);
+
+        // Register middleware aliases for individual route protection
         $middleware->alias([
             'checkauth' => \App\Http\Middleware\CheckAuth::class,
             'auth' => \App\Http\Middleware\Authenticate::class,
+            'globalauth' => \App\Http\Middleware\GlobalAuth::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

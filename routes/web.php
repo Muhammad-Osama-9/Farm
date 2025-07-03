@@ -5,7 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 
-// Public routes (no authentication required)
+// All routes - GlobalAuth middleware automatically protects them
 Route::get('/', function () {
     return view('home');
 });
@@ -17,15 +17,14 @@ Route::get('/signup', function () {
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 
-// Protected routes (authentication required)
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/home', function () {
-        return view('main');
-    });
-    Route::post('/logout', [UserController::class, 'logout']);
+// Dashboard routes (automatically protected by GlobalAuth middleware)
+Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'index']);
-    Route::post('/profile', [ProfileController::class, 'update']);
+Route::get('/home', function () {
+    return view('main');
 });
+Route::post('/logout', [UserController::class, 'logout']);
+
+// Profile routes (automatically protected by GlobalAuth middleware)
+Route::get('/profile', [ProfileController::class, 'index']);
+Route::post('/profile', [ProfileController::class, 'update']);

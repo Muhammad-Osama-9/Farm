@@ -17,7 +17,7 @@ class UserController extends Controller
         $response['password'] = bcrypt($response['password']);
         User::create($response);
 
-        return redirect()->intended('/login');
+        return redirect('/')->with('success', 'Registration successful! Please login.');
 
     }
     public function logout(Request $request)
@@ -41,7 +41,7 @@ class UserController extends Controller
             // Regenerate session to prevent fixation attacks
             $request->session()->regenerate();
 
-            return redirect()->intended('/home'); // or wherever you want
+            return redirect('/dashboard'); // Redirect to dashboard after login
         }
 
         return back()->with('error', 'Invalid email or password.');
