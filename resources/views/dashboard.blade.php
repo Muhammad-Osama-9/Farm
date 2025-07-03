@@ -23,6 +23,9 @@
                                 Smart Farm Dashboard
                             </h1>
                             <p class="text-gray-600 mt-1">Monitor your farm's vital signs in real-time</p>
+                            @if(isset($lastUpdated))
+                                <p class="text-xs text-gray-500 mt-1">Last updated: {{ \Carbon\Carbon::parse($lastUpdated)->format('M j, Y g:i A') }}</p>
+                            @endif
                         </div>
                     </div>
 
@@ -35,8 +38,46 @@
             </div>
         </div>
 
+        <!-- Success message -->
+        @if(session('success'))
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+                <div class="p-4 bg-green-50 border border-green-200 rounded-xl">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-green-700 font-medium">{{ session('success') }}</span>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Dashboard Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Alerts Section -->
+            @if(isset($alerts) && count($alerts) > 0)
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Alerts (Last 24 Hours)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($alerts as $alert)
+                            <div class="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-{{ $alert['color'] }}-200 shadow-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-2xl">{{ $alert['icon'] }}</div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-800">{{ $alert['message'] }}</p>
+                                        <p class="text-sm text-gray-600">{{ $alert['location'] }} - {{ $alert['sensor_id'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($alert['timestamp'])->format('M j, g:i A') }}</p>
+                                    </div>
+                                    <div class="w-3 h-3 rounded-full bg-{{ $alert['color'] }}-500 animate-pulse"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- Sensor Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <!-- Temperature Card -->
@@ -50,6 +91,9 @@
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-600">Temperature</p>
                             <p class="text-2xl font-bold text-gray-800">{{ $temperature }}°C</p>
+                            @if(isset($stats['averages_24h']['temperature']))
+                                <p class="text-xs text-gray-500">24h avg: {{ $stats['averages_24h']['temperature'] }}°C</p>
+                            @endif
                         </div>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
@@ -68,6 +112,9 @@
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-600">Humidity</p>
                             <p class="text-2xl font-bold text-gray-800">{{ $humidity }}%</p>
+                            @if(isset($stats['averages_24h']['humidity']))
+                                <p class="text-xs text-gray-500">24h avg: {{ $stats['averages_24h']['humidity'] }}%</p>
+                            @endif
                         </div>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
@@ -86,6 +133,9 @@
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-600">Water Level</p>
                             <p class="text-2xl font-bold text-gray-800">{{ $waterLevel }} cm</p>
+                            @if(isset($stats['averages_24h']['water_level']))
+                                <p class="text-xs text-gray-500">24h avg: {{ $stats['averages_24h']['water_level'] }} cm</p>
+                            @endif
                         </div>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
@@ -127,6 +177,9 @@
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-600">Soil Moisture</p>
                             <p class="text-2xl font-bold text-gray-800">{{ $soilMoisture }}%</p>
+                            @if(isset($stats['averages_24h']['soil_moisture']))
+                                <p class="text-xs text-gray-500">24h avg: {{ $stats['averages_24h']['soil_moisture'] }}%</p>
+                            @endif
                         </div>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
@@ -155,6 +208,109 @@
                         <span class="text-sm text-gray-600">{{ $flame > 0 ? 'Alert' : 'Normal' }}</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Statistics and Health Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Statistics -->
+                @if(isset($stats))
+                    <div class="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Statistics</h2>
+                        
+                        @if(isset($stats['averages_24h']))
+                            <div class="mb-6">
+                                <h3 class="text-lg font-medium text-gray-700 mb-3">24-Hour Averages</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-blue-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-600">Temperature</p>
+                                        <p class="text-lg font-bold text-blue-600">{{ $stats['averages_24h']['temperature'] }}°C</p>
+                                    </div>
+                                    <div class="bg-green-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-600">Humidity</p>
+                                        <p class="text-lg font-bold text-green-600">{{ $stats['averages_24h']['humidity'] }}%</p>
+                                    </div>
+                                    <div class="bg-cyan-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-600">Water Level</p>
+                                        <p class="text-lg font-bold text-cyan-600">{{ $stats['averages_24h']['water_level'] }} cm</p>
+                                    </div>
+                                    <div class="bg-amber-50 rounded-lg p-3">
+                                        <p class="text-sm text-gray-600">Soil Moisture</p>
+                                        <p class="text-lg font-bold text-amber-600">{{ $stats['averages_24h']['soil_moisture'] }}%</p>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-2">Based on {{ $stats['averages_24h']['total_readings'] }} readings</p>
+                            </div>
+                        @endif
+
+                        @if(isset($stats['location_stats']) && count($stats['location_stats']) > 0)
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-700 mb-3">Location Statistics</h3>
+                                <div class="space-y-3">
+                                    @foreach($stats['location_stats'] as $location)
+                                        <div class="flex justify-between items-center bg-gray-50 rounded-lg p-3">
+                                            <div>
+                                                <p class="font-medium text-gray-800">{{ $location->location }}</p>
+                                                <p class="text-sm text-gray-600">{{ $location->unique_sensors }} sensors</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="text-lg font-bold text-gray-800">{{ $location->total_readings }}</p>
+                                                <p class="text-xs text-gray-500">readings</p>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <!-- Sensor Health -->
+                @if(isset($sensorHealth) && count($sensorHealth) > 0)
+                    <div class="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/20 shadow-xl">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Sensor Health</h2>
+                        <div class="space-y-4">
+                            @foreach($sensorHealth as $sensor)
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <p class="font-medium text-gray-800">{{ $sensor['sensor_id'] }}</p>
+                                            <p class="text-sm text-gray-600">{{ $sensor['location'] }}</p>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            @if($sensor['status'] === 'healthy')
+                                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                                <span class="text-sm text-green-600">Healthy</span>
+                                            @elseif($sensor['status'] === 'low_battery')
+                                                <div class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"></div>
+                                                <span class="text-sm text-yellow-600">Low Battery</span>
+                                            @elseif($sensor['status'] === 'weak_signal')
+                                                <div class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                                                <span class="text-sm text-orange-600">Weak Signal</span>
+                                            @else
+                                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                                <span class="text-sm text-red-600">Offline</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 text-xs">
+                                        <div>
+                                            <p class="text-gray-500">Battery</p>
+                                            <p class="font-medium">{{ $sensor['battery_level'] }}%</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500">Signal</p>
+                                            <p class="font-medium">{{ $sensor['signal_strength'] }}%</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500">Last Seen</p>
+                                            <p class="font-medium">{{ \Carbon\Carbon::parse($sensor['last_seen'])->format('M j, g:i A') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Quick Actions -->

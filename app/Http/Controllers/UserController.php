@@ -41,7 +41,12 @@ class UserController extends Controller
             // Regenerate session to prevent fixation attacks
             $request->session()->regenerate();
 
-            return redirect('/dashboard'); // Redirect to dashboard after login
+            // Debug: Check if user is authenticated after login
+            if (Auth::check()) {
+                return redirect('/home')->with('success', 'Login successful!');
+            } else {
+                return back()->with('error', 'Login failed - authentication check failed.');
+            }
         }
 
         return back()->with('error', 'Invalid email or password.');
