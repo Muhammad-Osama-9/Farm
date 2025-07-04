@@ -57,26 +57,7 @@
         <!-- Dashboard Content -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Alerts Section -->
-            @if(isset($alerts) && count($alerts) > 0)
-                <div class="mb-8">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Alerts (Last 24 Hours)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($alerts as $alert)
-                            <div class="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-{{ $alert['color'] }}-200 shadow-lg">
-                                <div class="flex items-center space-x-3">
-                                    <div class="text-2xl">{{ $alert['icon'] }}</div>
-                                    <div class="flex-1">
-                                        <p class="font-medium text-gray-800">{{ $alert['message'] }}</p>
-                                        <p class="text-sm text-gray-600">{{ $alert['location'] }} - {{ $alert['sensor_id'] }}</p>
-                                        <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($alert['timestamp'])->format('M j, g:i A') }}</p>
-                                    </div>
-                                    <div class="w-3 h-3 rounded-full bg-{{ $alert['color'] }}-500 animate-pulse"></div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
+          
 
             <!-- Sensor Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -209,6 +190,26 @@
                     </div>
                 </div>
             </div>
+              @if(isset($alerts) && count($alerts) > 0)
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Alerts (Last 24 Hours)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @foreach($alerts as $alert)
+                            <div class="bg-white/80 backdrop-blur-xl rounded-xl p-4 border border-{{ $alert['color'] }}-200 shadow-lg">
+                                <div class="flex items-center space-x-3">
+                                    <div class="text-2xl">{{ $alert['icon'] }}</div>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-800">{{ $alert['message'] }}</p>
+                                        <p class="text-sm text-gray-600">{{ $alert['location'] }} - {{ $alert['sensor_id'] }}</p>
+                                        <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($alert['timestamp'])->format('M j, g:i A') }}</p>
+                                    </div>
+                                    <div class="w-3 h-3 rounded-full bg-{{ $alert['color'] }}-500 animate-pulse"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <!-- Statistics and Health Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
